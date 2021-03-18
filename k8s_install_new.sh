@@ -1,13 +1,13 @@
 #!/bin/bash
 # auther: boge
 # descriptions:  the shell scripts will use ansible to deploy K8S at binary for siample
-
+# 尝试根据博哥的版本修改成支持centos8.3版本的脚本 auther:xinjingshun
 # 传参检测
 [ $# -ne 6 ] && echo -e "Usage: $0 rootpasswd netnum nethosts cri cni k8s-cluster-name\nExample: bash $0 bogedevops 10.0.1 201\ 202\ 203\ 204 [containerd|docker] [calico|flannel] test\n" && exit 11 
 
 # 变量定义
 export release=3.0.0
-export k8s_ver=v.1.19.7  # v1.20.2, v.1.19.7, v1.18.15, v1.17.17
+export k8s_ver=v.1.20.4  # v1.20.2, v.1.19.7, v1.18.15, v1.17.17
 rootpasswd=$1
 netnum=$2
 nethosts=$3
@@ -27,19 +27,20 @@ else
 fi
 
 # deploy机器检测python环境
-python2 -V &>/dev/null
+# Centos8 默认为python3
+python3 -V &>/dev/null
 if [ $? -ne 0 ];then
     if cat /etc/redhat-release &>/dev/null;then
         yum install gcc openssl-devel bzip2-devel 
-        wget https://www.python.org/ftp/python/2.7.16/Python-2.7.16.tgz
-        tar xzf Python-2.7.16.tgz
-        cd Python-2.7.16
+        wget https://www.python.org/ftp/python/3.9.2/Python-3.9.2.tgz
+        tar xzf Python-3.9.2.tgz
+        cd Python-3.9.2
         ./configure --enable-optimizations
         make altinstall
-        ln -s /usr/bin/python2.7 /usr/bin/python
+        ln -s /usr/bin/python3.9 /usr/bin/python
         cd -
     else
-        apt-get install -y python2.7 && ln -s /usr/bin/python2.7 /usr/bin/python
+        apt-get install -y python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python
     fi
 fi
 
@@ -60,15 +61,15 @@ fi
 if cat /etc/redhat-release &>/dev/null;then
     yum install git python-pip sshpass -y
     [ -f ./get-pip.py ] && python ./get-pip.py || {
-    wget https://bootstrap.pypa.io/2.7/get-pip.py && python get-pip.py
+    wget https://bootstrap.pypa.io/3.5/get-pip.py && python get-pip.py
     }
 else
     apt-get install git python-pip sshpass -y
     [ -f ./get-pip.py ] && python ./get-pip.py || {
-    wget https://bootstrap.pypa.io/2.7/get-pip.py && python get-pip.py
+    wget https://bootstrap.pypa.io/3.5/get-pip.py && python get-pip.py
     }
 fi
-python -m pip install --upgrade "pip < 21.0"
+python -m pip install --upgrade "pip < 21.0.1"
 
 pip -V
 pip install --no-cache-dir ansible netaddr
